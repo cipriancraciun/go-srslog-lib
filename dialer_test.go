@@ -12,6 +12,7 @@ import (
 func TestGetDialer(t *testing.T) {
 	w := Writer{
 		priority: LOG_ERR,
+		app:      "app",
 		tag:      "tag",
 		hostname: "",
 		network:  "",
@@ -58,6 +59,7 @@ func TestGetDialer(t *testing.T) {
 func TestUnixDialer(t *testing.T) {
 	w := Writer{
 		priority: LOG_ERR,
+		app:      "app",
 		tag:      "tag",
 		hostname: "",
 		network:  "",
@@ -104,6 +106,7 @@ func TestTLSDialer(t *testing.T) {
 
 	w := Writer{
 		priority:  LOG_ERR,
+		app:       "app",
 		tag:       "tag",
 		hostname:  "",
 		network:   "tcp+tls",
@@ -141,6 +144,7 @@ func TestTCPDialer(t *testing.T) {
 
 	w := Writer{
 		priority: LOG_ERR,
+		app:      "app",
 		tag:      "tag",
 		hostname: "",
 		network:  "tcp",
@@ -177,6 +181,7 @@ func TestUDPDialer(t *testing.T) {
 
 	w := Writer{
 		priority: LOG_ERR,
+		app:      "app",
 		tag:      "tag",
 		hostname: "",
 		network:  "udp",
@@ -213,6 +218,7 @@ func TestCustomDialer(t *testing.T) {
 	nwork, addr := "custom", "custom_addr_to_pass"
 	w := Writer{
 		priority: LOG_ERR,
+		app:      "app",
 		tag:      "tag",
 		hostname: "",
 		network:  nwork,

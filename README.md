@@ -32,25 +32,25 @@ import(
 You can still use it for local syslog:
 
 ```
-w, err := syslog.Dial("", "", syslog.LOG_ERR, "testtag")
+w, err := syslog.Dial("", "", syslog.LOG_ERR, "testapp", "testtag")
 ```
 
 Or to unencrypted UDP:
 
 ```
-w, err := syslog.Dial("udp", "192.168.0.50:514", syslog.LOG_ERR, "testtag")
+w, err := syslog.Dial("udp", "192.168.0.50:514", syslog.LOG_ERR, "testapp", "testtag")
 ```
 
 Or to unencrypted TCP:
 
 ```
-w, err := syslog.Dial("tcp", "192.168.0.51:514", syslog.LOG_ERR, "testtag")
+w, err := syslog.Dial("tcp", "192.168.0.51:514", syslog.LOG_ERR, "testapp", "testtag")
 ```
 
 But now you can also send messages via TLS-encrypted TCP:
 
 ```
-w, err := syslog.DialWithTLSCertPath("tcp+tls", "192.168.0.52:514", syslog.LOG_ERR, "testtag", "/path/to/servercert.pem")
+w, err := syslog.DialWithTLSCertPath("tcp+tls", "192.168.0.52:514", syslog.LOG_ERR, "testapp", "testtag", "/path/to/servercert.pem")
 ```
 
 And if you need more control over your TLS configuration :
@@ -66,7 +66,7 @@ config := tls.Config{
     RootCAs: pool,
 }
 
-w, err := DialWithTLSConfig(network, raddr, priority, tag, &config)
+w, err := DialWithTLSConfig(network, raddr, priority, app, tag, &config)
 ```
 
 (Note that in both TLS cases, this uses a self-signed certificate, where the
@@ -101,7 +101,7 @@ dial := func(network, addr string) (net.Conn, error) {
     return tls.DialWithDialer(netDialer, realNetwork, addr, &config)
 }
 
-w, err := DialWithCustomDialer("custom", "192.168.0.52:514", syslog.LOG_ERR, "testtag", dial)
+w, err := DialWithCustomDialer("custom", "192.168.0.52:514", syslog.LOG_ERR, "testapp", "testtag", dial)
 ```
 
 Your custom dial func can set timeouts, proxy connections, and do whatever else it needs before returning a net.Conn.

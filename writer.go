@@ -9,6 +9,7 @@ import (
 // A Writer is a connection to a syslog server.
 type Writer struct {
 	priority  Priority
+	app       string
 	tag       string
 	hostname  string
 	network   string
@@ -190,7 +191,7 @@ func (w *Writer) write(conn serverConn, p Priority, msg string) (int, error) {
 		msg += "\n"
 	}
 
-	err := conn.writeString(w.framer, w.formatter, p, w.hostname, w.tag, msg)
+	err := conn.writeString(w.framer, w.formatter, p, w.hostname, w.app, w.tag, msg)
 	if err != nil {
 		return 0, err
 	}

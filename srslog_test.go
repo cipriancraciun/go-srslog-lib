@@ -179,7 +179,7 @@ func TestWithSimulated(t *testing.T) {
 		if tr == "unix" || tr == "unixgram" {
 			defer os.Remove(addr)
 		}
-		s, err := Dial(tr, addr, LOG_INFO|LOG_USER, "syslog_test")
+		s, err := Dial(tr, addr, LOG_INFO|LOG_USER, "syslog_app", "syslog_tag")
 		if err != nil {
 			t.Fatalf("Dial() failed: %v", err)
 		}
@@ -204,7 +204,7 @@ func TestFlap(t *testing.T) {
 	defer os.Remove(addr)
 	defer sock.Close()
 
-	s, err := Dial(net, addr, LOG_INFO|LOG_USER, "syslog_test")
+	s, err := Dial(net, addr, LOG_INFO|LOG_USER, "syslog_app", "syslog_tag")
 	if err != nil {
 		t.Fatalf("Dial() failed: %v", err)
 	}
@@ -240,7 +240,7 @@ func TestNew(t *testing.T) {
 		t.Skip("skipping syslog test during -short")
 	}
 
-	s, err := New(LOG_INFO|LOG_USER, "the_tag")
+	s, err := New(LOG_INFO|LOG_USER, "the_app", "the_tag")
 	if err != nil {
 		t.Fatalf("New() failed: %s", err)
 	}
@@ -262,15 +262,15 @@ func TestDial(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping syslog test during -short")
 	}
-	f, err := Dial("", "", (LOG_LOCAL7|LOG_DEBUG)+1, "syslog_test")
+	f, err := Dial("", "", (LOG_LOCAL7|LOG_DEBUG)+1, "syslog_app", "syslog_tag")
 	if f != nil {
 		t.Fatalf("Should have trapped bad priority")
 	}
-	f, err = Dial("", "", -1, "syslog_test")
+	f, err = Dial("", "", -1, "syslog_app", "syslog_tag")
 	if f != nil {
 		t.Fatalf("Should have trapped bad priority")
 	}
-	l, err := Dial("", "", LOG_USER|LOG_ERR, "syslog_test")
+	l, err := Dial("", "", LOG_USER|LOG_ERR, "syslog_app", "syslog_tag")
 	if err != nil {
 		t.Fatalf("Dial() failed: %s", err)
 	}
@@ -278,7 +278,7 @@ func TestDial(t *testing.T) {
 }
 
 func TestDialFails(t *testing.T) {
-	w, err := Dial("udp", "fakehost", LOG_ERR, "tag")
+	w, err := Dial("udp", "fakehost", LOG_ERR, "app", "tag")
 	if err == nil {
 		t.Errorf("should fail to dial")
 	}
@@ -288,7 +288,7 @@ func TestDialFails(t *testing.T) {
 }
 
 func TestDialTLSFails(t *testing.T) {
-	w, err := DialWithTLSCertPath("tcp+tls", "127.0.0.1:0", LOG_ERR, "syslog_test", "test/nocertfound.pem")
+	w, err := DialWithTLSCertPath("tcp+tls", "127.0.0.1:0", LOG_ERR, "syslog_app", "syslog_tag", "test/nocertfound.pem")
 	if w != nil {
 		t.Fatalf("Should not have a writer")
 	}
@@ -301,12 +301,12 @@ func check(t *testing.T, in, out string) {
 	if hostname, err := os.Hostname(); err != nil {
 		t.Error("Error retrieving hostname")
 	} else {
-		checkWithPriorityAndTag(t, LOG_USER+LOG_INFO, "syslog_test", hostname, in, out)
+		checkWithPriorityAndTag(t, LOG_USER+LOG_INFO, "syslog_app", "syslog_tag", hostname, in, out)
 	}
 }
 
-func checkWithPriorityAndTag(t *testing.T, p Priority, tag, hostname, in, out string) {
-	tmpl := fmt.Sprintf("<%d>%%s %%s %s[%%d]: %s\n", p, tag, in)
+func checkWithPriorityAndTag(t *testing.T, p Priority, app, tag, hostname, in, out string) {
+	tmpl := fmt.Sprintf("<%d>%%s %%s %s[%%d]:%s %s\n", p, app, tag, in)
 	var parsedHostname, timestamp string
 	var pid int
 	if n, err := fmt.Sscanf(out, tmpl, &timestamp, &parsedHostname, &pid); n != 3 || err != nil {
@@ -319,14 +319,15 @@ func checkWithPriorityAndTag(t *testing.T, p Priority, tag, hostname, in, out st
 func TestWrite(t *testing.T) {
 	tests := []struct {
 		pri Priority
-		pre string
+		app string
+		tag string
 		msg string
 		exp string
 	}{
-		{LOG_USER | LOG_ERR, "syslog_test", "", "%s %s syslog_test[%d]: \n"},
-		{LOG_USER | LOG_ERR, "syslog_test", "write test", "%s %s syslog_test[%d]: write test\n"},
+		{LOG_USER | LOG_ERR, "syslog_app", "syslog_tag", "", "%s %s syslog_app[%d]:syslog_tag \n"},
+		{LOG_USER | LOG_ERR, "syslog_app", "syslog_tag", "write test", "%s %s syslog_app[%d]:syslog_tag write test\n"},
 		// Write should not add \n if there already is one
-		{LOG_USER | LOG_ERR, "syslog_test", "write test 2\n", "%s %s syslog_test[%d]: write test 2\n"},
+		{LOG_USER | LOG_ERR, "syslog_app", "syslog_tag", "write test 2\n", "%s %s syslog_app[%d]:syslog_tag write test 2\n"},
 	}
 
 	if hostname, err := os.Hostname(); err != nil {
@@ -337,7 +338,7 @@ func TestWrite(t *testing.T) {
 			addr, sock, srvWG := startServer("udp", "", done)
 			defer srvWG.Wait()
 			defer sock.Close()
-			l, err := Dial("udp", addr, test.pri, test.pre)
+			l, err := Dial("udp", addr, test.pri, test.app, test.tag)
 			if err != nil {
 				t.Fatalf("syslog.Dial() failed: %v", err)
 			}
@@ -360,14 +361,15 @@ func TestWrite(t *testing.T) {
 func TestTLSPathWrite(t *testing.T) {
 	tests := []struct {
 		pri Priority
-		pre string
+		app string
+		tag string
 		msg string
 		exp string
 	}{
-		{LOG_USER | LOG_ERR, "syslog_test", "", "%s %s syslog_test[%d]: \n"},
-		{LOG_USER | LOG_ERR, "syslog_test", "write test", "%s %s syslog_test[%d]: write test\n"},
+		{LOG_USER | LOG_ERR, "syslog_app", "syslog_tag", "", "%s %s syslog_app[%d]:syslog_tag \n"},
+		{LOG_USER | LOG_ERR, "syslog_app", "syslog_tag", "write test", "%s %s syslog_app[%d]:syslog_tag write test\n"},
 		// Write should not add \n if there already is one
-		{LOG_USER | LOG_ERR, "syslog_test", "write test 2\n", "%s %s syslog_test[%d]: write test 2\n"},
+		{LOG_USER | LOG_ERR, "syslog_app", "syslog_tag", "write test 2\n", "%s %s syslog_app[%d]:syslog_tag write test 2\n"},
 	}
 
 	if hostname, err := os.Hostname(); err != nil {
@@ -379,7 +381,7 @@ func TestTLSPathWrite(t *testing.T) {
 			defer srvWG.Wait()
 			defer sock.Close()
 
-			l, err := DialWithTLSCertPath("tcp+tls", addr, test.pri, test.pre, "test/cert.pem")
+			l, err := DialWithTLSCertPath("tcp+tls", addr, test.pri, test.app, test.tag, "test/cert.pem")
 			if err != nil {
 				t.Fatalf("syslog.Dial() failed: %v", err)
 			}
@@ -402,14 +404,15 @@ func TestTLSPathWrite(t *testing.T) {
 func TestTLSCertWrite(t *testing.T) {
 	tests := []struct {
 		pri Priority
-		pre string
+		app string
+		tag string
 		msg string
 		exp string
 	}{
-		{LOG_USER | LOG_ERR, "syslog_test", "", "%s %s syslog_test[%d]: \n"},
-		{LOG_USER | LOG_ERR, "syslog_test", "write test", "%s %s syslog_test[%d]: write test\n"},
+		{LOG_USER | LOG_ERR, "syslog_app", "syslog_tag", "", "%s %s syslog_app[%d]:syslog_tag \n"},
+		{LOG_USER | LOG_ERR, "syslog_app", "syslog_tag", "write test", "%s %s syslog_app[%d]:syslog_tag write test\n"},
 		// Write should not add \n if there already is one
-		{LOG_USER | LOG_ERR, "syslog_test", "write test 2\n", "%s %s syslog_test[%d]: write test 2\n"},
+		{LOG_USER | LOG_ERR, "syslog_app", "syslog_tag", "write test 2\n", "%s %s syslog_app[%d]:syslog_tag write test 2\n"},
 	}
 
 	if hostname, err := os.Hostname(); err != nil {
@@ -426,7 +429,7 @@ func TestTLSCertWrite(t *testing.T) {
 				t.Fatalf("cold not read cert: %v", err)
 			}
 
-			l, err := DialWithTLSCert("tcp+tls", addr, test.pri, test.pre, cert)
+			l, err := DialWithTLSCert("tcp+tls", addr, test.pri, test.app, test.tag, cert)
 			if err != nil {
 				t.Fatalf("syslog.Dial() failed: %v", err)
 			}
@@ -450,7 +453,7 @@ func TestConcurrentWrite(t *testing.T) {
 	addr, sock, srvWG := startServer("udp", "", make(chan string, 1))
 	defer srvWG.Wait()
 	defer sock.Close()
-	w, err := Dial("udp", addr, LOG_USER|LOG_ERR, "how's it going?")
+	w, err := Dial("udp", addr, LOG_USER|LOG_ERR, "syslog_app", "how's it going?")
 	if err != nil {
 		t.Fatalf("syslog.Dial() failed: %v", err)
 	}
@@ -509,7 +512,7 @@ func TestConcurrentReconnect(t *testing.T) {
 	for i := 0; i < N; i++ {
 		go func() {
 			defer wg.Done()
-			w, err := Dial(net, addr, LOG_USER|LOG_ERR, "tag")
+			w, err := Dial(net, addr, LOG_USER|LOG_ERR, "app", "tag")
 			if err != nil {
 				t.Fatalf("syslog.Dial() failed: %v", err)
 			}
@@ -541,13 +544,13 @@ func TestLocalConn(t *testing.T) {
 
 	lc := localConn{conn: conn}
 
-	lc.writeString(nil, nil, LOG_ERR, "hostname", "tag", "content")
+	lc.writeString(nil, nil, LOG_ERR, "hostname", "app", "tag", "content")
 
 	if len(messages) != 1 {
 		t.Errorf("should write one message")
 	}
 
-	if messages[0] != DefaultFramer(UnixFormatter(LOG_ERR, "hostname", "tag", "content")) {
+	if messages[0] != DefaultFramer(UnixFormatter(LOG_ERR, "hostname", "app", "tag", "content")) {
 		t.Errorf("should use the unix formatter")
 	}
 }

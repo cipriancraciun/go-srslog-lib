@@ -78,6 +78,7 @@ func TestWriteFormatters(t *testing.T) {
 
 		w := Writer{
 			priority: LOG_ERR,
+			app:      "app",
 			tag:      "tag",
 			hostname: "hostname",
 			network:  "udp",
@@ -96,7 +97,7 @@ func TestWriteFormatters(t *testing.T) {
 		if f == nil {
 			f = DefaultFormatter
 		}
-		expected := strings.TrimSpace(f(LOG_ERR, "hostname", "tag", "this is a test message"))
+		expected := strings.TrimSpace(f(LOG_ERR, "hostname", "app", "tag", "this is a test message"))
 
 		_, err = w.Write([]byte("this is a test message"))
 		if err != nil {
@@ -127,6 +128,7 @@ func TestWriterFramers(t *testing.T) {
 
 		w := Writer{
 			priority: LOG_ERR,
+			app:      "app",
 			tag:      "tag",
 			hostname: "hostname",
 			network:  "udp",
@@ -145,7 +147,7 @@ func TestWriterFramers(t *testing.T) {
 		if f == nil {
 			f = DefaultFramer
 		}
-		expected := strings.TrimSpace(f(DefaultFormatter(LOG_ERR, "hostname", "tag", "this is a test message") + "\n"))
+		expected := strings.TrimSpace(f(DefaultFormatter(LOG_ERR, "hostname", "app", "tag", "this is a test message") + "\n"))
 
 		_, err = w.Write([]byte("this is a test message"))
 		if err != nil {
@@ -166,6 +168,7 @@ func TestWriteWithDefaultPriority(t *testing.T) {
 
 	w := Writer{
 		priority: LOG_ERR,
+		app:      "app",
 		tag:      "tag",
 		hostname: "hostname",
 		network:  "udp",
@@ -187,7 +190,7 @@ func TestWriteWithDefaultPriority(t *testing.T) {
 		t.Errorf("zero bytes written")
 	}
 
-	checkWithPriorityAndTag(t, LOG_ERR, "tag", "hostname", "this is a test message", <-done)
+	checkWithPriorityAndTag(t, LOG_ERR, "app", "tag", "hostname", "this is a test message", <-done)
 }
 
 func TestWriteWithPriority(t *testing.T) {
@@ -198,6 +201,7 @@ func TestWriteWithPriority(t *testing.T) {
 
 	w := Writer{
 		priority: LOG_ERR,
+		app:      "app",
 		tag:      "tag",
 		hostname: "hostname",
 		network:  "udp",
@@ -219,7 +223,7 @@ func TestWriteWithPriority(t *testing.T) {
 		t.Errorf("zero bytes written")
 	}
 
-	checkWithPriorityAndTag(t, LOG_DEBUG, "tag", "hostname", "this is a test message", <-done)
+	checkWithPriorityAndTag(t, LOG_DEBUG, "app", "tag", "hostname", "this is a test message", <-done)
 }
 
 func TestWriteWithPriorityAndFacility(t *testing.T) {
@@ -230,6 +234,7 @@ func TestWriteWithPriorityAndFacility(t *testing.T) {
 
 	w := Writer{
 		priority: LOG_ERR,
+		app:      "app",
 		tag:      "tag",
 		hostname: "hostname",
 		network:  "udp",
@@ -251,7 +256,7 @@ func TestWriteWithPriorityAndFacility(t *testing.T) {
 		t.Errorf("zero bytes written")
 	}
 
-	checkWithPriorityAndTag(t, LOG_DEBUG|LOG_LOCAL5, "tag", "hostname", "this is a test message", <-done)
+	checkWithPriorityAndTag(t, LOG_DEBUG|LOG_LOCAL5, "app", "tag", "hostname", "this is a test message", <-done)
 }
 
 func TestDebug(t *testing.T) {
@@ -262,6 +267,7 @@ func TestDebug(t *testing.T) {
 
 	w := Writer{
 		priority: LOG_ERR,
+		app:      "app",
 		tag:      "tag",
 		hostname: "hostname",
 		network:  "udp",
@@ -279,7 +285,7 @@ func TestDebug(t *testing.T) {
 		t.Errorf("failed to debug: %v", err)
 	}
 
-	checkWithPriorityAndTag(t, LOG_DEBUG, "tag", "hostname", "this is a test message", <-done)
+	checkWithPriorityAndTag(t, LOG_DEBUG, "app", "tag", "hostname", "this is a test message", <-done)
 }
 
 func TestInfo(t *testing.T) {
@@ -290,6 +296,7 @@ func TestInfo(t *testing.T) {
 
 	w := Writer{
 		priority: LOG_ERR,
+		app:      "app",
 		tag:      "tag",
 		hostname: "hostname",
 		network:  "udp",
@@ -307,7 +314,7 @@ func TestInfo(t *testing.T) {
 		t.Errorf("failed to info: %v", err)
 	}
 
-	checkWithPriorityAndTag(t, LOG_INFO, "tag", "hostname", "this is a test message", <-done)
+	checkWithPriorityAndTag(t, LOG_INFO, "app", "tag", "hostname", "this is a test message", <-done)
 }
 
 func TestNotice(t *testing.T) {
@@ -318,6 +325,7 @@ func TestNotice(t *testing.T) {
 
 	w := Writer{
 		priority: LOG_ERR,
+		app:      "app",
 		tag:      "tag",
 		hostname: "hostname",
 		network:  "udp",
@@ -335,7 +343,7 @@ func TestNotice(t *testing.T) {
 		t.Errorf("failed to notice: %v", err)
 	}
 
-	checkWithPriorityAndTag(t, LOG_NOTICE, "tag", "hostname", "this is a test message", <-done)
+	checkWithPriorityAndTag(t, LOG_NOTICE, "app", "tag", "hostname", "this is a test message", <-done)
 }
 
 func TestWarning(t *testing.T) {
@@ -346,6 +354,7 @@ func TestWarning(t *testing.T) {
 
 	w := Writer{
 		priority: LOG_ERR,
+		app:      "app",
 		tag:      "tag",
 		hostname: "hostname",
 		network:  "udp",
@@ -363,7 +372,7 @@ func TestWarning(t *testing.T) {
 		t.Errorf("failed to warn: %v", err)
 	}
 
-	checkWithPriorityAndTag(t, LOG_WARNING, "tag", "hostname", "this is a test message", <-done)
+	checkWithPriorityAndTag(t, LOG_WARNING, "app", "tag", "hostname", "this is a test message", <-done)
 }
 
 func TestErr(t *testing.T) {
@@ -374,6 +383,7 @@ func TestErr(t *testing.T) {
 
 	w := Writer{
 		priority: LOG_ERR,
+		app:      "app",
 		tag:      "tag",
 		hostname: "hostname",
 		network:  "udp",
@@ -391,7 +401,7 @@ func TestErr(t *testing.T) {
 		t.Errorf("failed to err: %v", err)
 	}
 
-	checkWithPriorityAndTag(t, LOG_ERR, "tag", "hostname", "this is a test message", <-done)
+	checkWithPriorityAndTag(t, LOG_ERR, "app", "tag", "hostname", "this is a test message", <-done)
 }
 
 func TestCrit(t *testing.T) {
@@ -402,6 +412,7 @@ func TestCrit(t *testing.T) {
 
 	w := Writer{
 		priority: LOG_ERR,
+		app:      "app",
 		tag:      "tag",
 		hostname: "hostname",
 		network:  "udp",
@@ -419,7 +430,7 @@ func TestCrit(t *testing.T) {
 		t.Errorf("failed to crit: %v", err)
 	}
 
-	checkWithPriorityAndTag(t, LOG_CRIT, "tag", "hostname", "this is a test message", <-done)
+	checkWithPriorityAndTag(t, LOG_CRIT, "app", "tag", "hostname", "this is a test message", <-done)
 }
 
 func TestAlert(t *testing.T) {
@@ -430,6 +441,7 @@ func TestAlert(t *testing.T) {
 
 	w := Writer{
 		priority: LOG_ERR,
+		app:      "app",
 		tag:      "tag",
 		hostname: "hostname",
 		network:  "udp",
@@ -447,7 +459,7 @@ func TestAlert(t *testing.T) {
 		t.Errorf("failed to alert: %v", err)
 	}
 
-	checkWithPriorityAndTag(t, LOG_ALERT, "tag", "hostname", "this is a test message", <-done)
+	checkWithPriorityAndTag(t, LOG_ALERT, "app", "tag", "hostname", "this is a test message", <-done)
 }
 
 func TestEmerg(t *testing.T) {
@@ -458,6 +470,7 @@ func TestEmerg(t *testing.T) {
 
 	w := Writer{
 		priority: LOG_ERR,
+		app:      "app",
 		tag:      "tag",
 		hostname: "hostname",
 		network:  "udp",
@@ -475,5 +488,5 @@ func TestEmerg(t *testing.T) {
 		t.Errorf("failed to emerg: %v", err)
 	}
 
-	checkWithPriorityAndTag(t, LOG_EMERG, "tag", "hostname", "this is a test message", <-done)
+	checkWithPriorityAndTag(t, LOG_EMERG, "app", "tag", "hostname", "this is a test message", <-done)
 }
